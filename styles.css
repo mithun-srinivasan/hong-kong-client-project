@@ -1,0 +1,1444 @@
+/* ==========================================================================
+   Azhar - portfolio site
+   A hand-written 1:1 recreation of the original Framer build.
+   --------------------------------------------------------------------------
+   Layout notes
+   ------------
+   The original is built entirely with flexbox. To stay pixel-identical the
+   same flex shorthand values are reused here (e.g. `flex: .4 0 0`), because
+   Framer's fractional flex-grow values produce a very specific column
+   distribution that is reproduced exactly by copying them.
+
+   Breakpoints (identical to the Framer project):
+     • Desktop  >= 1200px
+     • Tablet   600px - 1199.98px
+     • Mobile   <= 599.98px
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Design tokens
+   -------------------------------------------------------------------------- */
+:root {
+  --bg: #fff;
+  --label: #888; /* grey section labels / headings */
+  --copy: #3d3d3d; /* body copy */
+  --accent: #ea644b; /* clock second hand + pin */
+  --rule: #d1d1d1; /* hairline rules */
+  --font: "Inter", "Inter Placeholder", sans-serif;
+
+  /* Framer renders 1rem as 15px on this project */
+  font-size: 93.75%;
+}
+
+/* --------------------------------------------------------------------------
+   2. Reset / base
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#main {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Framer disables the automatic text inflation on every element */
+* {
+  -webkit-text-size-adjust: none !important;
+  text-size-adjust: none !important;
+}
+
+body {
+  background: var(--bg);
+  color: var(--copy);
+  font-family: var(--font);
+  font-size: 15px; /* 1rem */
+  font-weight: 500;
+  letter-spacing: 0.0094em;
+  line-height: 1.5em;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+figure {
+  margin: 0;
+}
+
+img,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+}
+
+/* --------------------------------------------------------------------------
+   3. Typography presets
+   Framer exposes two text presets:
+     • "label" (a8mtv7) → #888  - headings, years, section titles
+     • "copy"  (m0k8cu) → #3d3d3d - body text, meta lists
+   -------------------------------------------------------------------------- */
+.copy,
+.label {
+  margin: 0;
+  font-family: var(--font);
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0.0094em;
+  line-height: 1.5em;
+  text-align: start;
+  /* OpenType features the original enables on every text preset */
+  font-feature-settings: "blwf" on, "cv09" on, "cv03" on, "cv04" on, "cv11" on;
+  --paragraph-spacing: 20px;
+}
+
+.copy {
+  color: var(--copy);
+}
+
+.label {
+  color: var(--label);
+}
+
+/* Framer keeps a 20px gap between consecutive paragraphs */
+.copy + .copy {
+  margin-top: var(--paragraph-spacing);
+}
+
+/* Inline links keep the body colour and dim to grey on hover */
+a.link {
+  color: var(--copy);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a.link:hover {
+  color: var(--label);
+}
+
+/* Grey sub-labels ("Socials", "Experiences", …) */
+.muted {
+  color: var(--label);
+}
+
+/* --------------------------------------------------------------------------
+   4. Rich text wrapper
+   Every Framer RichText sits in a wrapper that breaks long words. The
+   `rt--*` variants below carry the flex ratio that positions the block
+   inside its column - Framer expresses these as fractional grow factors
+   (`flex: .35 0 0`) combined with a 1px flex basis, which is what produces
+   the very specific column widths of the original layout.
+   -------------------------------------------------------------------------- */
+.rt {
+  flex: none;
+  width: 100%;
+  height: auto;
+  position: relative;
+  word-break: break-word;
+  word-wrap: break-word;
+}
+
+.rt--bio,
+.rt--body,
+.rt--quote {
+  flex: 0.35 0 0;
+}
+
+.rt--year,
+.rt--meta,
+.rt--attribution,
+.rt--lists {
+  flex: 0.25 0 0;
+}
+
+.rt--title {
+  flex: 0.4 0 0;
+}
+
+/* Ratio blocks collapse to a 1px flex basis (Framer's trick) */
+.rt--bio,
+.rt--year,
+.rt--body,
+.rt--meta,
+.rt--title,
+.rt--quote,
+.rt--attribution,
+.rt--lists {
+  width: 1px;
+}
+
+/* Paragraph spacing reset used by the "Misc" blocks */
+.rt--tight {
+  --paragraph-spacing: 0px;
+}
+
+/* The small three-line note under the clock keeps its line breaks */
+.rt--note {
+  flex: none;
+  width: auto;
+  height: auto;
+  position: relative;
+  white-space: pre;
+}
+
+/* --------------------------------------------------------------------------
+   5. Page shell
+   -------------------------------------------------------------------------- */
+.site {
+  display: flex;
+  flex-flow: column;
+  place-content: center flex-start;
+  align-items: center;
+  gap: 0;
+  width: auto;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: clip;
+  background: var(--bg);
+  min-height: 100vh;
+}
+
+/* --------------------------------------------------------------------------
+   6. Spacer - empty head room above the fold
+   -------------------------------------------------------------------------- */
+.spacer {
+  display: flex;
+  flex-flow: column;
+  place-content: center flex-start;
+  align-items: center;
+  gap: 0;
+  flex: none;
+  width: 100%;
+  height: 48vh;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  background: var(--bg);
+}
+
+/* --------------------------------------------------------------------------
+   7. Intro - name, bio, copyright
+   -------------------------------------------------------------------------- */
+.intro {
+  display: flex;
+  flex-flow: row;
+  place-content: flex-start space-between;
+  align-items: flex-start;
+  flex: none;
+  width: 100%;
+  height: min-content;
+  padding: 0 24px 96px;
+  position: relative;
+  overflow: visible;
+  z-index: 1;
+  background: var(--bg);
+}
+
+.intro__left,
+.info__label,
+.testimonials__label,
+.timezone__label {
+  display: flex;
+  flex-flow: column;
+  place-content: flex-start;
+  align-items: flex-start;
+  gap: 0;
+  flex: 0.4 0 0;
+  width: 1px;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: visible;
+}
+
+.intro__right {
+  display: flex;
+  flex-flow: row;
+  place-content: flex-start;
+  align-items: flex-start;
+  gap: 0;
+  flex: 0.6 0 0;
+  width: 1px;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: visible;
+}
+
+.intro__row {
+  display: flex;
+  flex-flow: row;
+  place-content: flex-start space-between;
+  align-items: flex-start;
+  flex: 1 0 0;
+  width: 1px;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: visible;
+}
+
+/* The grey ©2027 variant is mobile only */
+.rt--year-mobile {
+  display: none;
+}
+
+/* --------------------------------------------------------------------------
+   8. Works - projects, side projects, misc
+   -------------------------------------------------------------------------- */
+.works {
+  display: flex;
+  flex-flow: column;
+  place-content: center flex-start;
+  align-items: center;
+  gap: 96px;
+  flex: none;
+  width: 100%;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: clip;
+  z-index: 1;
+  background: var(--bg);
+}
+
+.projects,
+.side-projects {
+  display: flex;
+  flex-flow: column;
+  place-content: center flex-start;
+  align-items: center;
+  gap: 48px;
+  flex: none;
+  width: 100%;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  background: var(--bg);
+}
+
+.project-row {
+  display: flex;
+  flex-flow: row;
+  place-content: center flex-start;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  width: 100%;
+  height: min-content;
+  padding: 0;
+  position: relative;
+}
+
+.project {
+  flex: 1 0 0;
+  width: 1px;
+  height: auto;
+  position: relative;
+}
+
+.project__inner {
+  display: flex;
+  flex-flow: column;
+  place-content: center flex-start;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  height: min-content;
+  padding: 0 24px;
+  position: relative;
+}
+
+.project__content {
+  display: flex;
+  flex-flow: column;
+  place-content: center;
+  align-items: center;
+  gap: 24px;
+  flex: none;
+  width: 100%;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: visible;
+}
+
+/* Video / cover media */
+.project__media {
+  aspect-ratio: 1.93333;
+  flex: none;
+  width: 100%;
+  height: auto;
+  position: relative;
+}
+
+.project__media--side {
+  aspect-ratio: 1.508;
+  flex: 0.6 0 0;
+  width: 1px;
+}
+
+.video {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  object-fit: cover;
+  object-position: 50% 50%;
+  background-color: rgba(0, 0, 0, 0);
+  cursor: auto;
+}
+
+/* Meta row under the media */
+.project__meta {
+  display: flex;
+  flex-flow: row;
+  place-content: flex-start space-between;
+  align-items: flex-start;
+  flex: none;
+  width: 100%;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: visible;
+}
+
+.project__year {
+  display: flex;
+  flex-flow: column;
+  place-content: flex-start;
+  align-items: flex-start;
+  gap: 0;
+  flex: 0.4 0 0;
+  width: 1px;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: visible;
+}
+
+.project__info {
+  display: flex;
+  flex-flow: row;
+  place-content: flex-start;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 0.6 0 0;
+  width: 1px;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: visible;
+}
+
+.project__info-row {
+  display: flex;
+  flex-flow: row;
+  place-content: flex-start space-between;
+  align-items: flex-start;
+  flex: 1 0 0;
+  width: 1px;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: visible;
+}
+
+/* Side project variant */
+.project--side .project__inner {
+  flex-flow: row;
+  place-content: flex-start space-between;
+  align-items: flex-start;
+}
+
+.project--side .project__content {
+  flex: 1 0 0;
+  width: 1px;
+}
+
+.project--side .project__meta {
+  place-content: flex-start flex-end;
+  justify-content: flex-end;
+}
+
+.project__top {
+  display: flex;
+  flex-flow: row;
+  place-content: flex-start space-between;
+  align-items: flex-start;
+  flex: none;
+  width: 100%;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: visible;
+}
+
+/* Mobile-only section titles.
+   On the original these blocks carry Framer's `hidden-*` classes and are
+   therefore invisible on tablet + desktop - they only appear below 600px. */
+.side-projects__title,
+.miscs__title {
+  display: none;
+  flex-flow: column;
+  place-content: flex-start;
+  align-items: flex-start;
+  gap: 16px;
+  flex: none;
+  width: 100%;
+  height: min-content;
+  padding: 0 8px;
+  position: relative;
+  overflow: visible;
+  background: var(--bg);
+}
+
+/* --------------------------------------------------------------------------
+   9. Misc
+   -------------------------------------------------------------------------- */
+.miscs {
+  display: flex;
+  flex-flow: column;
+  place-content: center flex-start;
+  align-items: center;
+  gap: 48px;
+  flex: none;
+  width: 100%;
+  height: min-content;
+  padding: 0 0 96px;
+  position: relative;
+  overflow: visible;
+}
+
+.misc {
+  flex: none;
+  width: 100%;
+  height: auto;
+  position: relative;
+}
+
+.misc__inner {
+  display: flex;
+  flex-flow: row;
+  place-content: flex-start space-between;
+  align-items: flex-start;
+  width: 100%;
+  height: min-content;
+  padding: 0 24px;
+  position: relative;
+}
+
+.misc__content {
+  display: flex;
+  flex-flow: column;
+  place-content: center flex-start;
+  align-items: center;
+  gap: 24px;
+  flex: 1 0 0;
+  width: 1px;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: visible;
+}
+
+.misc__top {
+  display: flex;
+  flex-flow: row;
+  place-content: flex-start;
+  align-items: flex-start;
+  gap: 4px;
+  flex: none;
+  width: 100%;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: visible;
+}
+
+.misc__row {
+  display: flex;
+  flex-flow: row;
+  place-content: flex-start space-between;
+  align-items: flex-start;
+  flex: 0.6 0 0;
+  width: 1px;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.misc__cover-col {
+  display: flex;
+  flex-flow: column;
+  place-content: flex-start;
+  align-items: flex-start;
+  gap: 24px;
+  flex: 0.35 0 0;
+  width: 1px;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.misc__cover {
+  aspect-ratio: 0.876667;
+  display: flex;
+  flex-flow: row;
+  place-content: flex-start;
+  align-items: flex-start;
+  gap: 10px;
+  flex: none;
+  width: 100%;
+  height: auto;
+  padding: 0;
+  position: relative;
+  overflow: visible;
+}
+
+/* Poster layer behind the animated cover */
+.misc__cover-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+.misc__cover-bg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.misc__cover-img {
+  flex: none;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: clip;
+}
+
+.misc__cover-img img {
+  /* Taken out of flow on purpose: the live build wraps the GIF in an
+     absolutely positioned layer, so the cover box is sized purely by its
+     `aspect-ratio` (332px) instead of by the GIF's intrinsic 1000x1200. */
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* --------------------------------------------------------------------------
+   10. Hairline rule (animated separator)
+   -------------------------------------------------------------------------- */
+.info__rule {
+  flex: none;
+  width: 100%;
+  height: 1px;
+  position: relative;
+}
+
+/* The rule track spans the full width of the page (Framer sets `width: 100%`
+   inline on this component) and the inner line grows from 0% to 100%. */
+.rule {
+  display: flex;
+  flex-flow: row;
+  place-content: center flex-start;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 1px;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.rule__line {
+  flex: none;
+  width: 0%;
+  height: 1px;
+  position: relative;
+  background: var(--rule);
+  transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.rule.is-visible .rule__line {
+  width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   11. Info - bio, avatar, link lists
+   -------------------------------------------------------------------------- */
+.info {
+  display: flex;
+  flex-flow: column;
+  place-content: center flex-start;
+  align-items: center;
+  gap: 0;
+  flex: none;
+  width: 100%;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: clip;
+  scroll-margin-top: 56px;
+  z-index: 1;
+  background: var(--bg);
+}
+
+.info__row {
+  display: flex;
+  flex-flow: row;
+  place-content: flex-start space-between;
+  align-items: flex-start;
+  flex: none;
+  width: 100%;
+  height: min-content;
+  padding: 48px 24px 24px;
+  position: relative;
+  overflow: visible;
+  background: var(--bg);
+}
+
+.info__right {
+  display: flex;
+  flex-flow: row;
+  place-content: flex-start;
+  align-items: flex-start;
+  gap: 0;
+  flex: 0.6 0 0;
+  width: 1px;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: visible;
+}
+
+.info__inner {
+  display: flex;
+  flex-flow: row;
+  place-content: flex-start space-between;
+  align-items: flex-start;
+  flex: 1 0 0;
+  width: 1px;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: visible;
+}
+
+.info__main {
+  display: flex;
+  flex-flow: column;
+  place-content: flex-start;
+  align-items: flex-start;
+  gap: 24px;
+  flex: 0.35 0 0;
+  width: 1px;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: clip;
+}
+
+.info__avatar {
+  flex: none;
+  width: 85px;
+  height: 95px;
+  position: relative;
+}
+
+.info__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* --------------------------------------------------------------------------
+   12. Testimonials
+   -------------------------------------------------------------------------- */
+.testimonials {
+  display: flex;
+  flex-flow: row;
+  place-content: flex-start space-between;
+  align-items: flex-start;
+  flex: none;
+  width: 100%;
+  height: min-content;
+  padding: 0 24px 96px;
+  position: relative;
+  overflow: visible;
+  background: var(--bg);
+}
+
+.testimonials__right {
+  display: flex;
+  flex-flow: column;
+  place-content: flex-start;
+  align-items: flex-start;
+  gap: 0;
+  flex: 0.6 0 0;
+  width: 1px;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: clip;
+}
+
+.testimonials__list {
+  display: flex;
+  flex-flow: column;
+  place-content: flex-start;
+  align-items: flex-start;
+  gap: 48px;
+  flex: none;
+  width: 100%;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: visible;
+}
+
+.testimonial {
+  display: flex;
+  flex-flow: row;
+  place-content: flex-start space-between;
+  align-items: flex-start;
+  flex: none;
+  width: 100%;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: visible;
+}
+
+/* --------------------------------------------------------------------------
+   13. Timezone & live clock
+   -------------------------------------------------------------------------- */
+.timezone {
+  display: flex;
+  flex-flow: row;
+  place-content: flex-start space-between;
+  align-items: flex-start;
+  flex: none;
+  width: 100%;
+  height: min-content;
+  padding: 48px 24px 192px;
+  position: relative;
+  overflow: visible;
+  background: var(--bg);
+}
+
+.timezone__right {
+  display: flex;
+  flex-flow: column;
+  place-content: flex-start;
+  align-items: flex-start;
+  gap: 0;
+  flex: 0.6 0 0;
+  width: 1px;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: clip;
+}
+
+.timezone__inner {
+  display: flex;
+  flex-flow: column;
+  place-content: flex-start;
+  align-items: flex-start;
+  gap: 48px;
+  flex: none;
+  width: 100%;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: visible;
+}
+
+.timezone__row {
+  display: flex;
+  flex-flow: row;
+  place-content: flex-start space-between;
+  align-items: flex-start;
+  flex: none;
+  width: 100%;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: visible;
+}
+
+.timezone__clock-col {
+  flex: 0.35 0 0;
+  width: 1px;
+  height: auto;
+  position: relative;
+}
+
+.timezone__datetime {
+  display: flex;
+  flex-flow: column;
+  place-content: flex-start;
+  align-items: flex-start;
+  gap: 24px;
+  flex: 0.25 0 0;
+  width: 1px;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.timezone__datetime-inner {
+  display: flex;
+  flex-flow: column;
+  place-content: flex-end;
+  align-items: flex-end;
+  gap: 0;
+  flex: none;
+  width: min-content;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.timezone__clock-text {
+  display: flex;
+  flex-flow: column;
+  place-content: flex-end flex-start;
+  align-items: flex-end;
+  gap: 0;
+  flex: none;
+  width: 97px;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.timezone__time {
+  display: flex;
+  flex-flow: column;
+  place-content: flex-start;
+  align-items: flex-start;
+  gap: 10px;
+  flex: none;
+  width: 100%;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.timezone__date {
+  display: flex;
+  flex-flow: column;
+  place-content: flex-start;
+  align-items: flex-start;
+  gap: 10px;
+  flex: none;
+  width: 100%;
+  height: min-content;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* The digital time/date use a slightly smaller size than the body text */
+.clock-text {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  color: var(--copy);
+  font-family: var(--font);
+  font-weight: 500;
+  font-size: calc(1rem * 0.938);
+  font-style: normal;
+  letter-spacing: 0.0094em;
+  line-height: 1.5em;
+}
+
+/* Analogue clock */
+.clock {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 120px;
+  height: 120px;
+  border: 1.5px solid var(--label);
+  border-radius: 50%;
+  background: transparent;
+  will-change: transform;
+}
+
+.clock__hand {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: 50% 100%;
+  border-radius: 2px;
+  z-index: 8;
+  transform: translate(-50%, -100%) rotate(var(--angle, 0deg));
+}
+
+.clock__hand--hour {
+  width: 3px;
+  height: 35%;
+  background: var(--copy);
+}
+
+.clock__hand--minute {
+  width: 2px;
+  height: 40%;
+  background: var(--copy);
+}
+
+.clock__hand--second {
+  width: 1px;
+  height: 45%;
+  background: var(--accent);
+}
+
+.clock__pin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+/* --------------------------------------------------------------------------
+   14. Responsive - tablet (600px - 1199.98px)
+   -------------------------------------------------------------------------- */
+@media (min-width: 600px) and (max-width: 1199.98px) {
+  .spacer {
+    height: 40vh;
+  }
+
+  .intro,
+  .testimonials {
+    padding: 0 16px 80px;
+  }
+
+  .rt--bio,
+  .rt--body,
+  .rt--quote,
+  .timezone__clock-col {
+    flex: 0.45 0 0;
+  }
+
+  .rt--year,
+  .rt--meta,
+  .rt--attribution,
+  .rt--lists {
+    flex: 0.35 0 0;
+  }
+
+  .works {
+    gap: 80px;
+  }
+
+  .projects,
+  .side-projects,
+  .testimonials__list,
+  .timezone__inner {
+    gap: 40px;
+  }
+
+  .miscs {
+    padding: 0 0 80px;
+  }
+
+  .info {
+    scroll-margin-top: 48px;
+  }
+
+  .info__row {
+    padding: 40px 16px 24px;
+  }
+
+  .info__main {
+    flex: 0.45 0 0;
+    gap: 40px;
+  }
+
+  .timezone {
+    padding: 40px 16px 160px;
+  }
+
+  .timezone__datetime {
+    flex: 0.35 0 0;
+    gap: 20px;
+  }
+
+  .rt--note {
+    white-space: pre-wrap;
+    word-break: break-word;
+    word-wrap: break-word;
+    width: 35%;
+  }
+
+  /* Selected project */
+  .project__inner {
+    padding: 0 16px;
+  }
+
+  .project__content {
+    gap: 20px;
+  }
+
+  .project__media {
+    aspect-ratio: 1.425;
+  }
+
+  .project__info {
+    gap: 0;
+  }
+
+  .rt--body {
+    flex: 0.45 0 0;
+  }
+
+  .rt--meta {
+    flex: 0.35 0 0;
+  }
+
+  /* Side project */
+  .project--side .project__inner {
+    padding: 0 16px;
+  }
+
+  .project--side .project__content {
+    gap: 20px;
+  }
+
+  .project__media--side {
+    aspect-ratio: 1.235;
+  }
+
+  /* Misc */
+  .misc__cover-col {
+    flex: 0.45 0 0;
+    gap: 20px;
+  }
+
+  .misc__cover {
+    aspect-ratio: 0.8975;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   15. Responsive - mobile (<= 599.98px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 599.98px) {
+  .spacer {
+    height: 32vh;
+  }
+
+  /* The section titles only exist on mobile */
+  .side-projects__title,
+  .miscs__title {
+    display: flex;
+  }
+
+  /* Intro stacks vertically */
+  .intro {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 16px;
+    padding: 0 8px 64px;
+  }
+
+  .intro__left,
+  .rt--bio,
+  .info__label,
+  .info__right,
+  .rt--lists,
+  .testimonials__label,
+  .testimonials__right,
+  .rt--quote,
+  .rt--attribution,
+  .timezone__label,
+  .timezone__right {
+    flex: none;
+    width: 100%;
+  }
+
+  .intro__right {
+    flex: none;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .intro__row,
+  .testimonial,
+  .timezone__row {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 16px;
+  }
+
+  /* Only the grey year is shown on mobile */
+  .rt--year {
+    display: none;
+  }
+
+  .rt--year-mobile {
+    display: block;
+    flex: none;
+    width: 25%;
+  }
+
+  .works {
+    gap: 64px;
+  }
+
+  .projects {
+    order: 0;
+    gap: 32px;
+  }
+
+  .side-projects {
+    order: 1;
+    gap: 16px;
+  }
+
+  .miscs {
+    order: 2;
+    gap: 16px;
+    padding: 0 0 48px;
+  }
+
+  .misc {
+    order: 1;
+  }
+
+  .miscs__title {
+    order: 0;
+  }
+
+  .info {
+    scroll-margin-top: 40px;
+  }
+
+  .info__row {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 16px;
+    padding: 32px 8px 24px;
+  }
+
+  .info__inner {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 24px;
+  }
+
+  .info__main,
+  .timezone__datetime {
+    flex: none;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .testimonials {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 32px;
+    padding: 0 8px 64px;
+  }
+
+  .testimonials__list,
+  .timezone__inner {
+    gap: 32px;
+  }
+
+  .timezone {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 16px;
+    padding: 32px 8px 128px;
+  }
+
+  .timezone__clock-col {
+    flex: none;
+    width: 35%;
+  }
+
+  .timezone__datetime-inner {
+    width: 100%;
+  }
+
+  .timezone__clock-text {
+    align-content: flex-start;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .rt--note {
+    white-space: pre-wrap;
+    word-break: break-word;
+    word-wrap: break-word;
+    width: 100%;
+  }
+
+  /* The mobile variants of the side-project and misc components carry an
+     empty title (the section heading above them does the labelling), and the
+     side-project row has no year column - hiding them keeps the stacking
+     identical to the original. */
+  .project--side .rt--title,
+  .misc .rt--title,
+  .project--side .project__year {
+    display: none;
+  }
+
+  /* Selected project */
+  .project__inner {
+    padding: 0 8px;
+  }
+
+  .project__content {
+    justify-content: flex-start;
+    gap: 16px;
+  }
+
+  .project__media {
+    aspect-ratio: 0.831111;
+  }
+
+  .project__meta,
+  .project__info-row {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 16px;
+  }
+
+  .project__year,
+  .rt--body,
+  .rt--meta {
+    flex: none;
+    width: 100%;
+  }
+
+  .project__info {
+    flex: none;
+    gap: 0;
+    width: 100%;
+  }
+
+  /* Side project */
+  .project--side .project__inner {
+    justify-content: flex-start;
+    gap: 0;
+    padding: 0 8px 16px;
+  }
+
+  .project--side .project__content {
+    gap: 16px;
+  }
+
+  .project__top {
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 32px;
+  }
+
+  .project__media--side {
+    aspect-ratio: 0.831111;
+    flex: none;
+    width: 100%;
+  }
+
+  .project--side .project__meta {
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  .project--side .project__info {
+    gap: 32px;
+  }
+
+  .project--side .project__info-row {
+    gap: 16px;
+  }
+
+  .rt--body,
+  .rt--meta {
+    flex: none;
+    width: 100%;
+  }
+
+  /* Misc */
+  .misc__inner {
+    padding: 0 8px 16px;
+  }
+
+  .misc__top {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .misc__row {
+    flex-direction: column;
+    flex: none;
+    justify-content: flex-start;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .misc__cover-col {
+    flex: none;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .misc__cover {
+    aspect-ratio: 0.831111;
+  }
+
+  .misc__cover-img {
+    flex: 1 0 0;
+    width: 1px;
+    height: 100%;
+  }
+
+  .rt--meta {
+    flex: none;
+    width: 100%;
+  }
+}

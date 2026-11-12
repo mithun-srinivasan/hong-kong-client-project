@@ -1,0 +1,11 @@
+# Nothing to ignore — this is a plain static site.
+# The entries below only cover the usual local dev noise.
+
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+
+# Local tooling / editors
+.vscode/
+.idea/

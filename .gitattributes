@@ -1,0 +1,10 @@
+# Normalise text files to LF so the deployed site is byte-identical
+# to the version that was verified against the original.
+* text=auto eol=lf
+
+# Binary assets — never touched by Git's line-ending filters.
+*.mp4 binary
+*.gif binary
+*.png binary
+*.woff2 binary
+*.svg text eol=lf
